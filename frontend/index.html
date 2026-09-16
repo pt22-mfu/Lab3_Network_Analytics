@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Router SSH Console</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 28px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 12px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    .subtitle, footer {
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin: 20px 0 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #64748b;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #38bdf8;
+      color: #082f49;
+      border: 0;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #status {
+      margin-top: 24px;
+    }
+
+    pre {
+      min-height: 180px;
+      max-height: 500px;
+      overflow: auto;
+      padding: 16px;
+      background: #020617;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin-top: 24px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Router SSH Console</h1>
+    <p class="subtitle">
+      Execute Cisco IOS commands using Python and Paramiko.
+    </p>
+
+    <form id="command-form">
+      <label for="router-ip">Router IP Address</label>
+      <input
+        id="router-ip"
+        type="text"
+        placeholder="Example: 192.168.138.132"
+        autocomplete="off"
+        required
+      >
+
+      <label for="router-command">Router Commandline</label>
+      <input
+        id="router-command"
+        type="text"
+        placeholder="Example: show ip interface brief"
+        maxlength="500"
+        autocomplete="off"
+        required
+      >
+
+      <button id="execute-button" type="submit">Execute</button>
+    </form>
+
+    <p id="status" role="status" aria-live="polite">Ready</p>
+    <pre id="output">Router output will appear here.</pre>
+
+    <footer>
+      Phyo Thant Kyaw | 6631501189<br>
+      Computer Engineering, Mae Fah Luang University
+    </footer>
+  </main>
+
+  <script>
+    const form = document.getElementById("command-form");
+    const button = document.getElementById("execute-button");
+    const status = document.getElementById("status");
+    const output = document.getElementById("output");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const ip = document.getElementById("router-ip").value.trim();
+      const command =
+        document.getElementById("router-command").value.trim();
+
+      if (!ip || !command) {
+        status.textContent = "Enter both the router IP and command.";
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = "Connecting and executing...";
+      status.style.color = "#fbbf24";
+      output.textContent = "Please wait.";
+
+      try {
+        const response = await fetch("/api/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip, command })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Command execution failed.");
+        }
+
+        status.textContent = "Command completed";
+        status.style.color = "#4ade80";
+        output.textContent = result.output;
+      } catch (error) {
+        status.textContent = "Execution failed";
+        status.style.color = "#f87171";
+        output.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
