@@ -207,7 +207,3 @@ router and the installed library.
 - Interactive commands requiring additional input are not supported.
 - Commands that change the hostname or disconnect SSH may time out.
 
-## Verification Status
-
-Live execution against the university lab router has not yet been
-verified.
