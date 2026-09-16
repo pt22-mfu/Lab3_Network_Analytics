@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      ROUTER_USER: "${ROUTER_USER:-admin}"
+      ROUTER_PASSWORD: "${ROUTER_PASSWORD:-cisco}"
+    restart: unless-stopped
